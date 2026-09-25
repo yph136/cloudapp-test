@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CloudBase Demo · 待办清单</title>
+  <link rel="stylesheet" href="common.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <span class="logo">CloudBase Demo</span>
+    <a class="nav-link" data-nav="index.html" href="index.html">首页</a>
+    <a class="nav-link" data-nav="users.html" href="users.html">用户管理</a>
+    <a class="nav-link" data-nav="todos.html" href="todos.html">待办清单</a>
+    <a class="nav-link" data-nav="about.html" href="about.html">关于项目</a>
+  </nav>
+
+  <div class="container">
+    <h1>待办清单</h1>
+    <p class="subtitle">数据来自 HTTP 云函数 <code>http-demo</code> 的 <code>/api/todos</code>（内存存储）</p>
+
+    <div class="card">
+      <div class="row grow">
+        <input id="f-title" placeholder="要做点什么？" maxlength="120" />
+        <select id="f-priority">
+          <option value="normal">normal</option>
+          <option value="high">high</option>
+          <option value="low">low</option>
+        </select>
+        <button id="btn-add">添加</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="stats" id="stats"></div>
+      <div class="row" style="margin-bottom:12px">
+        <button class="ghost" data-filter="all">全部</button>
+        <button class="ghost" data-filter="active">未完成</button>
+        <button class="ghost" data-filter="done">已完成</button>
+        <button class="danger" id="btn-clear">清空已完成</button>
+      </div>
+      <ul class="list" id="list"></ul>
+    </div>
+  </div>
+
+  <script src="common.js"></script>
+  <script>
+    var filter = 'all'
+    var priorities = { high: 'high', normal: 'normal', low: 'low' }
+
+    async function loadStats() {
+      try {
+        var s = await api.get('/api/todos/stats')
+        document.getElementById('stats').innerHTML =
+          '<div class="stat"><b>' + s.total + '</b><span>全部</span></div>' +
+          '<div class="stat"><b>' + s.active + '</b><span>未完成</span></div>' +
+          '<div class="stat"><b>' + s.done + '</b><span>已完成</span></div>' +
+          '<div class="stat"><b>' + s.byPriority.high + '</b><span>高优先级</span></div>'
+      } catch (e) {
+        toast(e.message, 'error')
+      }
+    }
+
+    async function loadTodos() {
+      try {
+        var data = await api.get('/api/todos?status=' + filter)
+        document.getElementById('list').innerHTML = data.items.map(function (t) {
+          return '<li class="' + (t.done ? 'done' : '') + '">' +
+            '<input type="checkbox" data-toggle="' + t.id + '"' + (t.done ? ' checked' : '') + ' />' +
+            '<span class="title">' + escapeHtml(t.title) + '</span>' +
+            '<span class="badge">' + escapeHtml(t.priority) + '</span>' +
+            '<button class="danger" data-del="' + t.id + '">删除</button>' +
+            '</li>'
+        }).join('') || '<li class="muted">暂无数据</li>'
+      } catch (e) {
+        toast(e.message, 'error')
+      }
+    }
+
+    function refresh() {
+      loadTodos()
+      loadStats()
+    }
+
+    async function addTodo() {
+      var title = document.getElementById('f-title').value.trim()
+      if (!title) return toast('请输入待办内容', 'error')
+      try {
+        await api.post('/api/todos', { title: title, priority: document.getElementById('f-priority').value })
+        document.getElementById('f-title').value = ''
+        toast('已添加')
+        refresh()
+      } catch (e) {
+        toast(e.message, 'error')
+      }
+    }
+
+    document.getElementById('btn-add').addEventListener('click', addTodo)
+    document.getElementById('f-title').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') addTodo()
+    })
+
+    document.querySelectorAll('[data-filter]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        filter = btn.getAttribute('data-filter')
+        loadTodos()
+      })
+    })
+
+    document.getElementById('btn-clear').addEventListener('click', async function () {
+      if (!confirm('确认清空所有已完成的待办？')) return
+      try {
+        await api.del('/api/todos?done=true')
+        toast('已清空')
+        refresh()
+      } catch (e) {
+        toast(e.message, 'error')
+      }
+    })
+
+    document.getElementById('list').addEventListener('click', async function (e) {
+      var toggleId = e.target.getAttribute && e.target.getAttribute('data-toggle')
+      var delId = e.target.getAttribute && e.target.getAttribute('data-del')
+      if (toggleId) {
+        await api.put('/api/todos/' + toggleId, { done: e.target.checked })
+        refresh()
+      } else if (delId) {
+        await api.del('/api/todos/' + delId)
+        toast('已删除')
+        refresh()
+      }
+    })
+
+    refresh()
+  </script>
+</body>
+</html>

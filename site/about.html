@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CloudBase Demo · 关于项目</title>
+  <link rel="stylesheet" href="common.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <span class="logo">CloudBase Demo</span>
+    <a class="nav-link" data-nav="index.html" href="index.html">首页</a>
+    <a class="nav-link" data-nav="users.html" href="users.html">用户管理</a>
+    <a class="nav-link" data-nav="todos.html" href="todos.html">待办清单</a>
+    <a class="nav-link" data-nav="about.html" href="about.html">关于项目</a>
+  </nav>
+
+  <div class="container">
+    <h1>关于项目</h1>
+    <p class="subtitle">一个最小可用的 CloudBase 示例：多页面静态托管 + 多接口云函数</p>
+
+    <div class="card">
+      <h2 style="margin-top:0">目录结构</h2>
+<pre>cloudapp-test/
+├── cloudbaserc.json          # 环境、函数、托管与网关配置
+├── functions/                # 云函数（目录结构保持不变）
+│   ├── hello/                # 事件型函数：/api-demo
+│   └── http-demo/            # HTTP 型函数：/api-http
+├── site/                     # 静态托管站点
+│   ├── index.html            # 首页
+│   ├── users.html            # 用户管理
+│   ├── todos.html            # 待办清单
+│   ├── about.html            # 关于项目
+│   ├── common.css
+│   └── common.js
+└── cloudbase/migrations/     # PostgreSQL 迁移脚本</pre>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">页面清单</h2>
+      <table>
+        <thead><tr><th>页面</th><th>说明</th><th>依赖接口</th></tr></thead>
+        <tbody>
+          <tr><td><a href="index.html">index.html</a></td><td>首页与实时概览</td><td>/api/stats、/api-demo</td></tr>
+          <tr><td><a href="users.html">users.html</a></td><td>用户增删改查、搜索分页</td><td>/api/users</td></tr>
+          <tr><td><a href="todos.html">todos.html</a></td><td>待办新增、完成切换、统计</td><td>/api/todos、/api/todos/stats</td></tr>
+          <tr><td><a href="about.html">about.html</a></td><td>结构与接口说明</td><td>-</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">接口清单</h2>
+      <table>
+        <thead><tr><th>方法</th><th>路径</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td>GET</td><td>/api/health</td><td>健康检查</td></tr>
+          <tr><td>GET</td><td>/api/users</td><td>用户列表（q / role / page / pageSize）</td></tr>
+          <tr><td>POST</td><td>/api/users</td><td>新增用户</td></tr>
+          <tr><td>GET</td><td>/api/users/:id</td><td>用户详情</td></tr>
+          <tr><td>PUT</td><td>/api/users/:id</td><td>更新用户</td></tr>
+          <tr><td>DELETE</td><td>/api/users/:id</td><td>删除用户</td></tr>
+          <tr><td>GET</td><td>/api/todos</td><td>待办列表（status / q）</td></tr>
+          <tr><td>POST</td><td>/api/todos</td><td>新增待办</td></tr>
+          <tr><td>PUT</td><td>/api/todos/:id</td><td>更新待办 / 切换完成</td></tr>
+          <tr><td>DELETE</td><td>/api/todos/:id</td><td>删除待办</td></tr>
+          <tr><td>DELETE</td><td>/api/todos?done=true</td><td>清空已完成</td></tr>
+          <tr><td>GET</td><td>/api/todos/stats</td><td>待办统计</td></tr>
+          <tr><td>GET</td><td>/api/stats</td><td>服务总览指标</td></tr>
+          <tr><td>POST</td><td>/api-demo</td><td>事件型函数，action: greet / time / echo / sum / env</td></tr>
+        </tbody>
+      </table>
+      <p class="muted">
+        网关把 <code>/api-http</code> 指向 <code>http-demo</code>；若网关透传原始路径，
+        访问时使用 <code>/api-http/api/users</code>，页面可通过 <code>?apiBase=/api-http</code> 切换接口基址。
+      </p>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">常用命令</h2>
+<pre>tcb deploy                 # 部署全部资源（函数 + 静态托管）
+tcb fn deploy http-demo    # 仅部署 HTTP 型云函数
+tcb hosting deploy web /   # 仅部署静态站点
+tcb service list           # 查看网关路由</pre>
+      <p class="muted">数据保存在云函数进程内存中，实例回收后会重置为初始示例数据。</p>
+    </div>
+  </div>
+
+  <script src="common.js"></script>
+</body>
+</html>

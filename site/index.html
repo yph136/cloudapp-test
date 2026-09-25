@@ -3,20 +3,86 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CloudBase Hosting Demo</title>
-  <style>
-    body { font-family: -apple-system, "PingFang SC", sans-serif; background: #f6f8fb; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-    .card { background: #fff; border-radius: 12px; padding: 40px 48px; box-shadow: 0 4px 24px rgba(0,0,0,.08); text-align: center; }
-    h1 { color: #06b6a4; margin: 0 0 8px; }
-    p { color: #666; margin: 4px 0; }
-    .badge { display: inline-block; background: #e6f7f5; color: #06b6a4; border-radius: 20px; padding: 4px 14px; font-size: 13px; margin-top: 12px; }
-  </style>
+  <title>CloudBase Demo · 首页</title>
+  <link rel="stylesheet" href="common.css" />
 </head>
 <body>
-  <div class="card">
-    <h1>Hello from CloudBase Hosting</h1>
-    <p>静态托管部署测试页面（新加坡）11</p>
-    <span class="badge">tcb deploy 完整验证 · 3.8.0-beta.4</span>
+  <nav class="navbar">
+    <span class="logo">CloudBase Demo</span>
+    <a class="nav-link" data-nav="index.html" href="index.html">首页</a>
+    <a class="nav-link" data-nav="users.html" href="users.html">用户管理</a>
+    <a class="nav-link" data-nav="todos.html" href="todos.html">待办清单</a>
+    <a class="nav-link" data-nav="about.html" href="about.html">关于项目</a>
+  </nav>
+
+  <div class="container">
+    <div class="card" style="text-align:center">
+      <h1>Hello from CloudBase Hosting</h1>
+      <p class="subtitle">静态托管 + 云函数 + 网关 的完整示例</p>
+      <span class="badge">4 个页面 · 6 组 API</span>
+    </div>
+
+    <h2>页面导航</h2>
+    <div class="grid">
+      <a class="tile" href="users.html">
+        <strong>用户管理</strong>
+        <span>调用 /api/users 完成增删改查与搜索分页</span>
+      </a>
+      <a class="tile" href="todos.html">
+        <strong>待办清单</strong>
+        <span>调用 /api/todos，支持完成切换与统计</span>
+      </a>
+      <a class="tile" href="about.html">
+        <strong>关于项目</strong>
+        <span>目录结构、接口清单与部署方式</span>
+      </a>
+    </div>
+
+    <h2>实时接口概览（GET /api/stats）</h2>
+    <div class="card">
+      <div class="row" style="margin-bottom:12px">
+        <button id="btn-stats">刷新统计</button>
+        <button class="ghost" id="btn-hello">调用事件型函数 /api-demo</button>
+        <span class="muted">接口基址：<code id="api-base"></code></span>
+      </div>
+      <div id="stats" class="stats"></div>
+      <pre id="output">点击上方按钮发起请求…</pre>
+    </div>
   </div>
+
+  <script src="common.js"></script>
+  <script>
+    document.getElementById('api-base').textContent = window.API_BASE || '(同源)'
+
+    async function loadStats() {
+      try {
+        var data = await api.get('/api/stats')
+        document.getElementById('stats').innerHTML =
+          '<div class="stat"><b>' + data.users.total + '</b><span>用户总数</span></div>' +
+          '<div class="stat"><b>' + data.todos.total + '</b><span>待办总数</span></div>' +
+          '<div class="stat"><b>' + data.todos.active + '</b><span>未完成</span></div>' +
+          '<div class="stat"><b>' + data.uptime + '</b><span>运行时长</span></div>'
+        document.getElementById('output').textContent = JSON.stringify(data, null, 2)
+      } catch (e) {
+        toast(e.message, 'error')
+        document.getElementById('output').textContent = String(e.message)
+      }
+    }
+
+    async function loadHello() {
+      try {
+        var data = await api.post('/api-demo', { action: 'greet', name: 'CloudBase' })
+        document.getElementById('output').textContent = JSON.stringify(data, null, 2)
+        toast('事件型函数调用成功')
+      } catch (e) {
+        toast(e.message, 'error')
+        document.getElementById('output').textContent = String(e.message)
+      }
+    }
+
+    document.getElementById('btn-stats').addEventListener('click', loadStats)
+    document.getElementById('btn-hello').addEventListener('click', loadHello)
+    loadStats()
+  </script>
 </body>
 </html>
