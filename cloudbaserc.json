@@ -17,38 +17,5 @@
       "buildStrategy": "zip",
       "runtime": "Nodejs18.15"
     }
-  ],
-  "hosting": [
-    {
-      "name": "web",
-      "root": "site",
-      "framework": "static",
-      "deployPath": "/"
-    },    {
-      "name": "web02",
-      "root": "site",
-      "framework": "static",
-      "deployPath": "/web02"
-    }
-  ],
-  "gateway": {
-    "routes": [
-      {
-        "path": "/api-demo",
-        "target": "function:hello"
-      },
-      {
-        "path": "/api-http",
-        "target": "function:http-demo"
-      },
-      {
-        "path": "/web",
-        "target": "hosting:web"
-      }
-    ]
-  },
-  "database": {
-    "type": "postgresql",
-    "migrations": "./cloudbase/migrations"
-  }
+  ]
 }
