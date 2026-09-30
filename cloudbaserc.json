@@ -1,8 +1,8 @@
 {
   "$schema": "https://static.cloudbase.net/cli/cloudbaserc.schema.json",
   "version": "2.1",
-
   "envId": "{{env.ENV_ID}}",
+  "region": "ap-singapore",
   "functionRoot": "functions",
   "functions": [
     {
